@@ -1,0 +1,52 @@
+.error {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	padding: 15px 0;
+	z-index: 99;
+
+	background: red;
+	color: #fff;
+	border-bottom: 2px solid #a00;
+	text-shadow: 1px 2px #a00;
+
+	font-size: 18px;
+	font-weight: bold;
+	text-align: center;
+}
+.error.grey {
+	background: #aaa;
+	border-color: #888;
+	text-shadow: 1px 2px #888;
+}
+.error button {
+	-webkit-appearance: none;
+	appearance: none;
+	outline: none;
+	color: #fff;
+	margin: 0 0 -2px 10px;
+	padding: 4px;
+
+	background: #eee;
+	border-radius: 3px;
+	border: none;
+	border-bottom: 2px solid #aaa;
+}
+button:active {
+	margin-bottom: 0;
+	border-width: 0;
+	position: relative;
+	top: 2px;
+}
+button.green {
+	background: #2ecc71;
+	border-color: #27ae60;
+	text-shadow: 1px 2px #27ae60;
+}
+button.red {
+	background: #e74c3c;
+	border-color: #a00;
+	text-shadow: 1px 2px #a00;
+}
+.pointer { cursor: pointer; }

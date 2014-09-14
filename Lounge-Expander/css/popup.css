@@ -1,0 +1,103 @@
+* {
+    font-family: "Proxima Nova Regular","Helvetica Neue",Arial,Helvetica,sans-serif;
+}
+.inline-block { display:inline-block; }
+body { background: #d7d7d7; width: 363px; }
+header {
+    height:32px;
+    padding:0 0 5px 40px;
+
+    font-size:32px;
+    font-weight:bold;
+    color:#666;
+    text-shadow:1px 1px #e5e5e5;
+
+    background:no-repeat left center;
+}
+.red { color: #d12121; text-shadow: 1px 1px #925555; }
+.green { color: #72a326; text-shadow: 1px 1px #4a7010; }
+.orange { color: #e0aa1e; text-shadow: 1px 1px #976300; }
+
+/**
+ * Status
+ */
+.status {
+    text-align:right;
+    font-weight:bold;
+    margin: 0;
+}
+.status:first-of-type { margin-top: 1em; }
+
+/**
+ * Match styling
+ */
+.main header {
+    background-image:url(../imgs/bets.png);
+}
+.match {
+    display: inline-block;
+    margin-bottom: 10px;
+}
+.match:last-of-type { margin: 0; }
+.match .header {
+    padding: 5px 5px 5px 0;
+    margin: 0;
+
+    font-size:14px;
+    color: #333;
+    text-shadow: 1px 1px #e5e5e5;
+}
+.match:first-of-type .header {
+    border-top:1px solid #ccc;
+    background:-webkit-radial-gradient(top, ellipse, #eee 0%, #d7d7d7 70%);
+    background:radial-gradient(top, ellipse, #eee 0%, #d7d7d7 70%);
+}
+.match a { color: #252525; }
+.match .box {
+    display: inline-block;
+    background: #bbb;
+    padding: 20px 8px;
+    box-shadow: 2px 3px 4px -2px #888;
+    border-radius: 5px;
+}
+.team {
+    display: inline-block;
+    height: 50px;
+    padding-right: 60px;
+    background: url(../imgs/default_team.png) no-repeat center right;
+    text-align: center;
+    margin:0 20px 0 0;
+}
+.team.right {
+    background-position:center left;
+    padding:0 0 0 60px;
+    margin:0 0 0 20px;
+}
+.team::before { /* used to center .teamtext */
+    content: "";
+    display: inline-block;
+    width: 0;
+    height:100%;
+    vertical-align:middle;
+}
+.teamtext {
+    display: inline-block;
+    width:85px;
+    vertical-align: middle;
+}
+.teamtext * { display:block; }
+
+/**
+ * Footer
+ */
+footer {
+    margin-top: 10px;
+    font-size: 12px;
+    text-align: right;
+    color: #888;
+}
+footer a {
+    color: #888;
+    text-decoration:none;
+}
+footer a:hover { color: #555; }

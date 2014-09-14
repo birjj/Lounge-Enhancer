@@ -1,0 +1,36 @@
+{
+	"manifest_version": 2,
+	"name": "CSGO Lounge Expander",
+	"short_name": "LoungeExt",
+	"description": "Add functionality to CSGO Lounge - also includes a nifty status indicator",
+	"version": "0.0.1",
+	"content_scripts": [{
+		"matches": [
+			"*://csgolounge.com/*"
+		],
+		"js": [
+			"js/main.js"
+		],
+		"css": [
+			"css/lounge.css"
+		],
+		"run_at": "document_end"
+	}],
+	"background": {
+		"scripts": ["js/bg.js"],
+		"persistent": false
+	},
+	"browser_action": {
+		"default_icon": {
+			"19": "imgs/action/empty_19.png",
+			"38": "imgs/action/empty_38.png"
+		},
+		"default_title": "CSGO Lounge",
+		"default_popup": "popup.html"
+	},
+	"permissions": [
+		"*://csgolounge.com/*",
+		"alarms",
+		"storage"
+	]
+}

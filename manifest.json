@@ -15,6 +15,15 @@
 			"css/lounge.css"
 		],
 		"run_at": "document_end"
+	},
+	{
+		"matches": [
+			"https://steamcommunity.com/openid/login?*"
+		],
+		"js": [
+			"js/steam.js"
+		],
+		"run_at": "document_idle"
 	}],
 	"background": {
 		"scripts": ["js/bg.js"],
@@ -30,6 +39,7 @@
 	},
 	"permissions": [
 		"*://csgolounge.com/*",
+		"https://steamcommunity.com/openid/login",
 		"alarms",
 		"storage"
 	]

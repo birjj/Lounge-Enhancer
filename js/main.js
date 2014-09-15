@@ -1,5 +1,4 @@
 // INIT
-console.log("Loading ")
 var path = window.location.pathname,
     pathToPage = {"/": "home",
                   "/status": "status",
@@ -8,7 +7,7 @@ var path = window.location.pathname,
                   "/match": "match"},
     pageType = pathToPage[path] || "unknown",
     itemsAreReturns = false,
-    currentTab;
+    lastRequest;
 
 // INIT
 if (pageType === "match")
@@ -18,56 +17,7 @@ if (pageType === "match")
  * Sets up hooks for the match page
  */
 function init_match_page() {
-	// ported to regular JS from lounge's jQuery implementation
-	var placeBetNew_hook = function(match,tlss) {
-			// if no team was selected, error out
-			if (!document.getElementById("on").value) {
-				document.getElementById("placebut").style.display = "block";
-				display_error("You didn't select a team.");
-				return;
-			}
-
-			// if items have been added to the bet
-			if (document.querySelector(".left").children.length > 0) {
-				var data = serialize(document.getElementById("betpoll"))+"&match="+match+"&tlss="+tlss,
-				    btnClickHandler = function btnClickHandler(e) {
-				    		var elm = e.target,
-				    		    green = elm.className === "green";
-
-				    		elm.className = green ? "red" : "green";
-				    		elm.innerHTML = green ? "Disable auto-bet" : "Enable auto-bet";
-
-				    		// TODO: Add auto-bet logic
-				    	},
-				    responseHandler = function(){
-				    		console.log(this);
-				    		if (this.responseText)
-				    			// display error message, with "Enable autobetting" button
-				    			display_error(this.responseText, 
-				    				          "grey", 
-				    				          [{callback: btnClickHandler,
-				    				            class: "green",
-				    				            content: "Enable auto-bet"}]);
-				    		else
-				    			window.location.href = "http://csgolounge.com/mybets";
-				    	};
-
-				// send appropriate POST
-				if (itemsAreReturns) {
-					post("http://csgolounge.com/ajax/postBet.php",
-						 data,
-						 responseHandler);
-				} else {
-					post("http://csgolounge.com/ajax/postBetOffer.php",
-						 data,
-						 responseHandler);
-				}
-			} else {
-				document.getElementById("placebut").style.display = "block";
-				display_error("You didn't pick any item.");
-			}
-		},
-		match = /=([0-9]+)/.exec(window.location.search)[1],
+	var match = /=([0-9]+)/.exec(window.location.search)[1],
 		tlss = document.getElementById("placebut").getAttribute("onclick").match(/New\('[0-9]+', '([0-9A-Za-z]+)/)[1];
 	
 	// hook into tab clicks, so we can check if items are returns or from inventory
@@ -83,11 +33,75 @@ function init_match_page() {
 	newBtn.innerHTML = oldBtn.innerHTML;
 	newBtn.id = oldBtn.id;
 	newBtn.style = oldBtn.style;
-	newBtn.addEventListener("click", (function(match,tlss){return function(){placeBetNew_hook(match,tlss)}})(match,tlss));
+	newBtn.addEventListener("click", (function(match,tlss){return function(){placeBetNew_overwrite(match,tlss)}})(match,tlss));
 
 	// replace
 	oldBtn.parentNode.appendChild(newBtn);
 	oldBtn.parentNode.removeChild(oldBtn);
+}
+
+/**
+ * Enables/disables auto-rebetting of items, after bots fail
+ * @param {boolean} on - set to true if turning on, false if turning off
+ */
+function set_autobet(on) {
+	// TODO: Add auto-bet logic
+	chrome.runtime.sendMessage({post: "autobet",
+		                        request: lastRequest,
+		                        turnOn: on});
+}
+
+/**
+ * Function used to overwrite placeBetNew, so we can hook into it
+ * Rewritten in vanilla JS from CSGO Lounge's jQuery implementation
+ */
+function placeBetNew_overwrite(match,tlss) {
+	// if no team was selected, error out
+	if (!document.getElementById("on").value) {
+		document.getElementById("placebut").style.display = "block";
+		display_error("You didn't select a team.");
+		return;
+	}
+
+	// if items have been added to the bet
+	if (document.querySelector(".left").children.length > 0) {
+		var data = serialize(document.getElementById("betpoll"))+"&match="+match+"&tlss="+tlss,
+		    btnClickHandler = function btnClickHandler(e) {
+		    		var elm = e.target,
+		    		    green = elm.className === "green";
+
+		    		elm.className = green ? "red" : "green";
+		    		elm.innerHTML = green ? "Disable auto-bet" : "Enable auto-bet";
+
+		    		set_autobet(!green);
+		    	},
+		    responseHandler = function(){
+		    		console.log(this);
+		    		if (this.responseText)
+		    			// display error message, with "Enable autobetting" button
+		    			display_error(this.responseText, 
+		    				          "grey", 
+		    				          [{callback: btnClickHandler,
+		    				            class: "green",
+		    				            content: "Enable auto-bet"}]);
+		    		else
+		    			window.location.href = "http://csgolounge.com/mybets";
+		    	};
+
+		// send appropriate POST
+		if (itemsAreReturns) {
+			post("http://csgolounge.com/ajax/postBet.php",
+				 data,
+				 responseHandler);
+		} else {
+			post("http://csgolounge.com/ajax/postBetOffer.php",
+				 data,
+				 responseHandler);
+		}
+	} else {
+		document.getElementById("placebut").style.display = "block";
+		display_error("You didn't pick any item.");
+	}
 }
 
 /**
@@ -212,6 +226,13 @@ function post(url, data, callback, headers) {
         if (headers.hasOwnProperty(h))
             xhr.setRequestHeader(h, headers[h]);
     }
+
+    // save lastRequest for later re-sending
+    lastRequest = {
+    	url: url,
+    	data: data,
+    	headers: headers
+    };
 
     // send
     xhr.send(formatted);

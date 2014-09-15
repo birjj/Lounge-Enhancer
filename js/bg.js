@@ -35,6 +35,7 @@ chrome.runtime.onInstalled.addListener(function(){
  * Listens for message
  */
 chrome.runtime.onMessage.addListener(function(request,sender,callback) {
+    // if we're getting upcoming matches
     if (request.get === "games") {
         get_games(request.num, (function(callback){
                 return function(arr){
@@ -42,13 +43,60 @@ chrome.runtime.onMessage.addListener(function(request,sender,callback) {
                 }
             })(callback));
     }
+
+    // if we're getting status
     if (request.get === "status") {
         chrome.storage.local.get("status", callback);
     }
 
+    // if we're asked to highlight a tab
     if (request.post === "highlight") {
         chrome.tabs.highlight({tabs: [sender.tab.index]}, callback);
     }
+
+    // if we're asked to autobet
+    if (request.post === "autobet") {
+        // TODO: add support for disabling a specific alarm
+        // TODO: check if works
+
+        // if turning off, delete all autobet alarms
+        if (!request.turnOn) {
+            chrome.alarms.getAll(function(alarms) {
+                    for (var i = 0; i < alarms.length; i++) {
+                        if (/autobet_[0-9]{4}/.test(alarms.name)) {
+                            chrome.alarms.clear(alarms.name);
+                        }
+                    }
+                });
+        // otherwise, create and bind alarm
+        } else {
+            // TODO: create no-clash alarm naming scheme
+            var alarmName = "autobet_"+Math.floor(Math.random()*9999);
+
+            // due to the genius' over at Google, can't fire more than once a min :(
+            chrome.alarms.create(alarmName, {periodInMinutes: 0.1});
+            chrome.alarms.onAlarm.addListener((function(name, request){
+                    var url = request.url,
+                        data = request.data,
+                        responseHandler = function(){ // response handler for POST request
+                                console.log("Response for alarm "+name);
+                                console.log(this);
+                                if (this.responseText) {
+                                    // TODO: check if time is out
+                                } else
+                                    chrome.tabs.create({url: "http://csgolounge.com/mybets"});
+                            };
+                    return function(a){
+                        console.log("Checking alarm: "+name);
+                        if (a.name === name) {
+                            console.log("Sending:");
+                            post(url, data, responseHandler);
+                        }
+                    }
+                })(alarmName, request.request));
+        }
+    }
+
     return true;
 });
 
@@ -228,4 +276,40 @@ function get(url, callback, headers) {
 
     // send
     xhr.send();
+}
+
+/**
+ * Perform a POST request to a url
+ * @param {string} url - The URL to request to
+ * @param {object} data - the POST data
+ * @param {function} callback - The function to call once the request is performed
+ * @param {object} headers - a header object in the format {header: value} 
+ */
+function post(url, data, callback, headers) {
+    // create xmlhttprequest instance
+    var xhr = new XMLHttpRequest(),
+        formatted = [];
+
+    if (typeof data === "object") {
+        for (var k in data) {
+            formatted.push(encodeURIComponent(k) + "=" + encodeURIComponent(data[k]));
+        }
+        formatted = formatted.join("&");
+    } else {
+        formatted = data;
+    }
+
+    // init
+    xhr.addEventListener("load", callback);
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+
+    // set headers
+    for (var h in headers) {
+        if (headers.hasOwnProperty(h))
+            xhr.setRequestHeader(h, headers[h]);
+    }
+
+    // send
+    xhr.send(formatted);
 }

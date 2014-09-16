@@ -13,11 +13,35 @@ var path = window.location.pathname,
     			return "Closing the page will disable auto-betting."
     		}
     	},
-    lastRequest;
+    lastRequest,
+    autobetElement;
 
 // INIT
 if (pageType === "match")
 	init_match_page();
+
+// don't clutter the global scope with temporary variables
+(function(){
+	// create the (yet empty) autobet element, 
+	// so we don't have to every time autobet is enabled
+	autobetElement = document.createElement("div");
+	autobetElement.className = "autobet-indicator";
+
+	var header = document.createElement("p"),
+	    container = document.createElement("div");
+
+	container.className = "item-container";
+	header.className = "header";
+	header.innerHTML = "Currently auto-betting:";
+
+	autobetElement.appendChild(header);
+	autobetElement.appendChild(container);
+	
+	autobetElement.style.display = "none";
+
+	document.body.appendChild(autobetElement);
+})();
+
 
 /**
  * Sets up hooks for the match page
@@ -53,13 +77,70 @@ function init_match_page() {
  * @param {boolean} on - set to true if turning on, false if turning off
  */
 function set_autobet(on) {
-	// TODO: Add auto-bet logic
 	// make sure user is warned before closing the page
 	autoBetting = on;
-	if (on)
+	if (on) {
 		window.onbeforeunload = closeHook;
-	else
+		
+		// TODO: extract items from lastRequest, instead of DOM
+
+		// add items to autobet element
+		var itemElms = document.querySelectorAll(".betpoll .left .item"),
+		    container = document.querySelector(".autobet-indicator .item-container");
+		
+		document.querySelector(".autobet-indicator").style.display = "block";
+
+		// move items over
+		for (var i = 0; i < itemElms.length; i++) {
+			var item = itemElms[i].cloneNode(true),
+			    del = item.querySelectorAll(".name a");
+
+			item.setAttribute("onclick", "");
+			
+			// remove links from tooltip (as they break everything)
+			for (var j = 0; j < del.length; j++) {
+				del[j].parentNode.removeChild(del[j]);
+			}
+
+			container.appendChild(item);
+		}
+	} else {
 		window.onbeforeunload = function(){};
+
+		// remove all items from autobet element
+		var container = document.querySelector(".autobet-indicator .item-container"),
+		    child;
+
+		document.querySelector(".autobet-indicator").style.display = "none";
+		while ((child = container.firstChild)) {
+			container.removeChild(child);
+		}
+	}
+
+	// setup auto-bet logic
+	(function autobet_loop(){
+		if (lastRequest && autoBetting) {
+			console.log("Autobetting: "+autoBetting);
+			console.log(lastRequest);
+
+			var responseHandler = function(){
+		    		if (this.responseText) {
+		    			// display error message in auto-betting window
+		    			if (this.responseText === "Match has already started.") {
+		    				set_autobet(off);
+		    				alert("Match has started - autobet failed to bet items");
+		    			}
+		    		} else {
+		    			window.onbeforeunload = function(){};
+		    			window.location.href = "http://csgolounge.com/mybets";
+		    		}
+		    	};
+
+		   	post(lastRequest.url, lastRequest.data, responseHandler);
+
+			setTimeout(autobet_loop, 10000);
+		}
+	})();
 }
 
 /**

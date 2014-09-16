@@ -25,6 +25,8 @@ chrome.runtime.onInstalled.addListener(function(){
     get_status(status_loop);
     chrome.alarms.create("loopAlarm", {periodInMinutes: 1});
     chrome.alarms.onAlarm.addListener(function(a){
+            var d = new Date();
+            console.log("Checking status ("+d.getHours()+":"+d.getMinutes()+":"+d.getSeconds()+")");
             get_status(status_loop);
         });
 
@@ -82,6 +84,9 @@ chrome.runtime.onMessage.addListener(function(request,sender,callback) {
                                 console.log("Response for alarm "+name);
                                 console.log(this);
                                 if (this.responseText) {
+                                    if (this.responseText === "Match has already started.") {
+                                        
+                                    }
                                     // TODO: check if time is out
                                 } else
                                     chrome.tabs.create({url: "http://csgolounge.com/mybets"});

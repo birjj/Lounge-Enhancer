@@ -7,6 +7,12 @@ var path = window.location.pathname,
                   "/match": "match"},
     pageType = pathToPage[path] || "unknown",
     itemsAreReturns = false,
+    autoBetting = false,
+    closeHook = function(){
+    		if (autoBetting) {
+    			return "Closing the page will disable auto-betting."
+    		}
+    	},
     lastRequest;
 
 // INIT
@@ -17,27 +23,29 @@ if (pageType === "match")
  * Sets up hooks for the match page
  */
 function init_match_page() {
-	var match = /=([0-9]+)/.exec(window.location.search)[1],
-		tlss = document.getElementById("placebut").getAttribute("onclick").match(/New\('[0-9]+', '([0-9A-Za-z]+)/)[1];
-	
-	// hook into tab clicks, so we can check if items are returns or from inventory
-	document.querySelectorAll(".tab")[0].addEventListener("click", function(){itemsAreReturns = false});
-	document.querySelectorAll(".tab")[1].addEventListener("click", function(){itemsAreReturns = true});
+	if (document.getElementById("placebut")) {
+		var match = /=([0-9]+)/.exec(window.location.search)[1],
+			tlss = document.getElementById("placebut").getAttribute("onclick").match(/New\('[0-9]+', '([0-9A-Za-z]+)/)[1];
+		
+		// hook into tab clicks, so we can check if items are returns or from inventory
+		document.querySelectorAll(".tab")[0].addEventListener("click", function(){itemsAreReturns = false});
+		document.querySelectorAll(".tab")[1].addEventListener("click", function(){itemsAreReturns = true});
 
-	// replace "Place Bet" button, to remove event listeners, and listen to clicks
-	var oldBtn = document.getElementById("placebut"),
-	    newBtn = document.createElement("a");
+		// replace "Place Bet" button, to remove event listeners, and listen to clicks
+		var oldBtn = document.getElementById("placebut"),
+		    newBtn = document.createElement("a");
 
-	// manually clone oldBtn, since the event listener resides in onclick attribute
-	newBtn.className = oldBtn.className;
-	newBtn.innerHTML = oldBtn.innerHTML;
-	newBtn.id = oldBtn.id;
-	newBtn.style = oldBtn.style;
-	newBtn.addEventListener("click", (function(match,tlss){return function(){placeBetNew_overwrite(match,tlss)}})(match,tlss));
+		// manually clone oldBtn, since the event listener resides in onclick attribute
+		newBtn.className = oldBtn.className;
+		newBtn.innerHTML = oldBtn.innerHTML;
+		newBtn.id = oldBtn.id;
+		newBtn.style = oldBtn.style;
+		newBtn.addEventListener("click", (function(match,tlss){return function(){placeBetNew_overwrite(match,tlss)}})(match,tlss));
 
-	// replace
-	oldBtn.parentNode.appendChild(newBtn);
-	oldBtn.parentNode.removeChild(oldBtn);
+		// replace
+		oldBtn.parentNode.appendChild(newBtn);
+		oldBtn.parentNode.removeChild(oldBtn);
+	}
 }
 
 /**
@@ -46,9 +54,12 @@ function init_match_page() {
  */
 function set_autobet(on) {
 	// TODO: Add auto-bet logic
-	chrome.runtime.sendMessage({post: "autobet",
-		                        request: lastRequest,
-		                        turnOn: on});
+	// make sure user is warned before closing the page
+	autoBetting = on;
+	if (on)
+		window.onbeforeunload = closeHook;
+	else
+		window.onbeforeunload = function(){};
 }
 
 /**
@@ -123,7 +134,7 @@ function display_error(error, color, buttons) {
 	var elm = document.createElement("p");
 
 	elm.innerHTML = error;
-	elm.className = "error " + (color || "") + (buttons ? "" : " pointer");
+	elm.className = "error" + (" "+color || "") + (buttons ? "" : " pointer");
 	elm.removeAble = true;
 
 	// create any required buttons

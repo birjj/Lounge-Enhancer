@@ -1,4 +1,4 @@
-// INIT
+// VARIABLES
 var path = window.location.pathname,
     pathToPage = {"/": "home",
                   "/status": "status",
@@ -47,6 +47,7 @@ if (pageType === "match")
  * Sets up hooks for the match page
  */
 function init_match_page() {
+	// if we can bet, replace bet function with custom bet function
 	if (document.getElementById("placebut")) {
 		var match = /=([0-9]+)/.exec(window.location.search)[1],
 			tlss = document.getElementById("placebut").getAttribute("onclick").match(/New\('[0-9]+', '([0-9A-Za-z]+)/)[1];
@@ -132,6 +133,7 @@ function set_autobet(on) {
 		    			}
 		    		} else {
 		    			window.onbeforeunload = function(){};
+		    			localStorage.playedbet = "false";
 		    			window.location.href = "http://csgolounge.com/mybets";
 		    		}
 		    	};
@@ -146,6 +148,9 @@ function set_autobet(on) {
 /**
  * Function used to overwrite placeBetNew, so we can hook into it
  * Rewritten in vanilla JS from CSGO Lounge's jQuery implementation
+ * Not to be called from the extention itself
+ * @param {string} match - match ID to send on
+ * @param {string} tlss - token to pass on
  */
 function placeBetNew_overwrite(match,tlss) {
 	// if no team was selected, error out
@@ -168,16 +173,17 @@ function placeBetNew_overwrite(match,tlss) {
 		    		set_autobet(!green);
 		    	},
 		    responseHandler = function(){
-		    		console.log(this);
-		    		if (this.responseText)
+		    		if (this.responseText) {
 		    			// display error message, with "Enable autobetting" button
 		    			display_error(this.responseText, 
 		    				          "grey", 
 		    				          [{callback: btnClickHandler,
 		    				            class: "green",
 		    				            content: "Enable auto-bet"}]);
-		    		else
+		    		} else {
+		    			localStorage.playedbet = "false";
 		    			window.location.href = "http://csgolounge.com/mybets";
+		    		}
 		    	};
 
 		// send appropriate POST
@@ -201,9 +207,9 @@ function placeBetNew_overwrite(match,tlss) {
  * @param {string} error - error message to display
  * @param {string} color - class name to append to error
  * @param {array} buttons - array of button objects in format:
- *                           { content: string,
- *                           class: string
- *                             callback: function }
+ *                          { content: string,
+ *                            class: string,
+ *                            callback: function }
  */
 function display_error(error, color, buttons) {
 	// set focus on current tab if it isn't already
@@ -211,7 +217,7 @@ function display_error(error, color, buttons) {
 	console.log(!!buttons);
 	chrome.runtime.sendMessage({post: "highlight"},function(){});
 
-	// display error message
+	// create error message
 	var elm = document.createElement("p");
 
 	elm.innerHTML = error;
@@ -261,6 +267,7 @@ function display_error(error, color, buttons) {
 			}
 		})(elm), 5000);
 
+	// display error message
 	document.body.appendChild(elm);
 }
 
@@ -278,6 +285,7 @@ function serialize(form) {
 		if (!form[i].name)
 			continue;
 
+		// serialize
 		var name = encodeURIComponent(form[i].name),
 		    val = encodeURIComponent(form[i].value.replace(/r?\n/g, "\r\n"));
 

@@ -56,52 +56,6 @@ chrome.runtime.onMessage.addListener(function(request,sender,callback) {
         chrome.tabs.highlight({tabs: [sender.tab.index]}, callback);
     }
 
-    // if we're asked to autobet
-    if (request.post === "autobet") {
-        // TODO: add support for disabling a specific alarm
-        // TODO: check if works
-
-        // if turning off, delete all autobet alarms
-        if (!request.turnOn) {
-            chrome.alarms.getAll(function(alarms) {
-                    for (var i = 0; i < alarms.length; i++) {
-                        if (/autobet_[0-9]{4}/.test(alarms.name)) {
-                            chrome.alarms.clear(alarms.name);
-                        }
-                    }
-                });
-        // otherwise, create and bind alarm
-        } else {
-            // TODO: create no-clash alarm naming scheme
-            var alarmName = "autobet_"+Math.floor(Math.random()*9999);
-
-            // due to the genius' over at Google, can't fire more than once a min :(
-            chrome.alarms.create(alarmName, {periodInMinutes: 0.1});
-            chrome.alarms.onAlarm.addListener((function(name, request){
-                    var url = request.url,
-                        data = request.data,
-                        responseHandler = function(){ // response handler for POST request
-                                console.log("Response for alarm "+name);
-                                console.log(this);
-                                if (this.responseText) {
-                                    if (this.responseText === "Match has already started.") {
-                                        
-                                    }
-                                    // TODO: check if time is out
-                                } else
-                                    chrome.tabs.create({url: "http://csgolounge.com/mybets"});
-                            };
-                    return function(a){
-                        console.log("Checking alarm: "+name);
-                        if (a.name === name) {
-                            console.log("Sending:");
-                            post(url, data, responseHandler);
-                        }
-                    }
-                })(alarmName, request.request));
-        }
-    }
-
     return true;
 });
 
@@ -216,9 +170,11 @@ function status_loop(vals) {
  */
 function get_status(callback) {
     // since we need logic in the callback, we gotta do it like this
-    var func = (function(callback){return function(){
+    var func = (function(callback, timeout){return function(){
             // this function is called by XMLHttpRequest
             // all logic is in here
+            // clear timeout, so icon isn't changed to grey
+            clearTimeout(timeout);
 
             // if site failed to load, error
             if (this.status !== 200) {
@@ -240,7 +196,7 @@ function get_status(callback) {
                 callback({offline: offline,
                           status: colors});
             }
-        }})(callback);
+        }})(callback, setTimeout(function(){set_icon(3)}, 5000));
 
     // request status page, running the above function
     get("http://csgolounge.com/status", func);

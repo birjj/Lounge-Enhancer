@@ -24,6 +24,15 @@
 			"js/steam.js"
 		],
 		"run_at": "document_idle"
+	},
+	{
+		"matches": [
+			"http://steamcommunity.com/tradeoffer/*"
+		],
+		"js": [
+			"js/trade.js"
+		],
+		"run_at": "document_idle"
 	}],
 	"background": {
 		"scripts": ["js/bg.js"],

@@ -17,25 +17,35 @@ var path = window.location.pathname,
     autobetElement;
 
 // INIT
-if (pageType === "match")
-	init_match_page();
-
 // don't clutter the global scope with temporary variables
 (function(){
+	// if it's a match page, apply extra functionality
+	if (pageType === "match")
+		init_match_page();
+
+	// if we're currently betting, hook it
+	if (pageType === "bets" && document.getElementById("queue"))
+		init_queued();
+
 	// create the (yet empty) autobet element, 
 	// so we don't have to every time autobet is enabled
 	autobetElement = document.createElement("div");
 	autobetElement.className = "autobet-indicator";
 
 	var header = document.createElement("p"),
-	    container = document.createElement("div");
+	    container = document.createElement("div"),
+	    errorHeader = document.createElement("p"),
+	    errorMsg = document.createElement("p");
 
+	errorMsg.className = "error-message";
 	container.className = "item-container";
-	header.className = "header";
 	header.innerHTML = "Currently auto-betting:";
+	errorHeader.innerHTML = "Last error:";
 
 	autobetElement.appendChild(header);
 	autobetElement.appendChild(container);
+	autobetElement.appendChild(errorHeader);
+	autobetElement.appendChild(errorMsg);
 	
 	autobetElement.style.display = "none";
 
@@ -72,6 +82,37 @@ function init_match_page() {
 		oldBtn.parentNode.removeChild(oldBtn);
 	}
 }
+
+/**
+ * Hooks queue status, for auto-accept
+ */
+function init_queued() {
+	// response handler for when the queue element changes
+	var mutationHandler = function(records) {
+			for (var j = 0; j < records.length; j++) {
+				var record = records[j];
+
+				if (record.addedNodes) {
+					var nodes = record.addedNodes;
+					// loop through every new element
+					for (var i = 0; i < nodes.length; i++) {
+						// if a button was added (so trade is ready)
+						if (nodes[i].className === "button") {
+							// if timer is above 0
+							if ((420000 - (Date.now() - localStorage.whenbet)/1000) > 0) {
+								// TODO: save relevant info to ensure safe trade
+								window.location = nodes[i].href;
+							}
+						}
+					}
+				}
+			}
+		};
+
+	var obs = new MutationObserver(mutationHandler);
+	obs.observe(document.getElementById("queue"), {childList: true});
+}
+
 
 /**
  * Enables/disables auto-rebetting of items, after bots fail
@@ -118,31 +159,42 @@ function set_autobet(on) {
 		}
 	}
 
+	var curTime = new Date().getTime,
+	    deltaTimeText = document.querySelector(".box .half:first-child").textContent,
+	    deltaTime = parseInt(deltaTimeText);
+
+	deltaTime *= (deltaTimeText.indexOf("hour") !== -1 ? (60*60*1000) :
+		          deltaTimeText.indexOf("minute") !== -1 ? (60*1000) :
+		          1000);
+
 	// setup auto-bet logic
-	(function autobet_loop(){
-		if (lastRequest && autoBetting) {
-			console.log("Autobetting: "+autoBetting);
-			console.log(lastRequest);
+	(function(endTime) {
+		return function autobet_loop(){
+			console.log("Now: "+Date.now());
+			console.log("End: "+endTime);
+			if (lastRequest && autoBetting) {
+				console.log("Autobetting: "+autoBetting);
+				console.log(lastRequest);
 
-			var responseHandler = function(){
-		    		if (this.responseText) {
-		    			// display error message in auto-betting window
-		    			if (this.responseText === "Match has already started.") {
-		    				set_autobet(off);
+				var responseHandler = function(){
+			    		if (this.responseText === "Match has already started" || Date.now() > endTime) {
+		    				set_autobet(false);
 		    				alert("Match has started - autobet failed to bet items");
-		    			}
-		    		} else {
-		    			window.onbeforeunload = function(){};
-		    			localStorage.playedbet = "false";
-		    			window.location.href = "http://csgolounge.com/mybets";
-		    		}
-		    	};
+			    		} else if (this.responseText) {
+			    			document.querySelector(".autobet-indicator .error-message").innerHTML = this.responseText;
+			    		} else {
+			    			window.onbeforeunload = function(){};
+			    			localStorage.playedbet = "false";
+			    			window.location.href = "http://csgolounge.com/mybets";
+			    		}
+			    	};
 
-		   	post(lastRequest.url, lastRequest.data, responseHandler);
+			   	post(lastRequest.url, lastRequest.data, responseHandler);
 
-			setTimeout(autobet_loop, 10000);
+				setTimeout(autobet_loop, 10000);
+			}
 		}
-	})();
+	})(Date.now() + deltaTime)();
 }
 
 /**
@@ -170,7 +222,7 @@ function placeBetNew_overwrite(match,tlss) {
 		    		elm.className = green ? "red" : "green";
 		    		elm.innerHTML = green ? "Disable auto-bet" : "Enable auto-bet";
 
-		    		set_autobet(!green);
+		    		set_autobet(green);
 		    	},
 		    responseHandler = function(){
 		    		if (this.responseText) {

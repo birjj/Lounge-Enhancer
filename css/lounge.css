@@ -11,6 +11,7 @@
 	color: #fff;
 	border-bottom: 2px solid #a00;
 	text-shadow: 1px 2px #a00;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 
 	font-size: 18px;
 	font-weight: bold;
@@ -20,7 +21,6 @@
 	background: -webkit-linear-gradient(bottom, #c3c3c3 0%, #a2a2a2 100%);
 	background: linear-gradient(to bottom, #c3c3c3 0%, #a2a2a2 100%);
 	border-color: #888;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 	text-shadow: 1px 2px #888;
 }
 .error button {
@@ -59,25 +59,29 @@ button.red {
 	top: 0;
 	right: 0;
 	z-index: 98;
+	max-width: 140px;
 
 	background: #bbb;
 	padding: 5px 15px 15px;
 	border-bottom-left-radius: 5px;
 	box-shadow: 0 2px 16px rgba(0,0,0,0.5);
 }
-.autobet-indicator .header {
+.autobet-indicator p {
 	font-size: 14px;
 	text-shadow: 1px 1px #ccc;
 }
 .autobet-indicator .item-container {
 	background: linear-gradient(to bottom, #4b4b4b 0%, #252525 100%);
 	padding: 3px;
-	margin-top: 5px;
+	margin: 5px 0;
 
 	float: left;
-	width: 128px;
+	width: 135px;
 }
 .autobet-indicator .item-container .item {
 	margin: 2px;
 	float: left;
+}
+.autobet-indicator .error-message {
+	padding-left: 10px;
 }

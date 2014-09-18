@@ -5,8 +5,23 @@
 		<script src="js/popup.js"></script>
 	</head>
 	<body>
+		<input class="settings-check" type="checkbox"></input>
 		<section class="main">
 			
+		</section>
+		<section class="settings">
+			<header>Settings</header>
+			<form>
+				<p class="info">The following is not required, but enables auto-login and auto-accept of trades</p>
+				<label for="steamName">Steam username:</label>
+				<input type="text" id="steamName" />
+
+				<label for="steamPass">Steam password:</label>
+				<input type="password" id="steamPass" />
+				<p class="note">Please note: password is stored locally without encryption</p>
+			</form>
+
+			<button class="submit">Save settings</button>
 		</section>
 		<footer>Extension created by <a href="http://steamcommunity.com/id/birjolaxew/">Birjolaxew</a></footer>
 	</body>

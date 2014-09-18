@@ -15,6 +15,10 @@ var GREEN = "#76EE00",
 // VARIABLES
 var lastError;
 
+chrome.runtime.onStartup.addListener(function(){
+    console.log("onStartup called");
+    set_icon(3);
+})
 // INIT
 // why is onInstalled fired on reload, yet onStartup isn't?
 // more importantly - why isn't there an onLoad event?
@@ -48,6 +52,9 @@ chrome.runtime.onMessage.addListener(function(request,sender,callback) {
 
     // if we're getting status
     if (request.get === "status") {
+        if (!callback)
+            callback = status_loop;
+
         chrome.storage.local.get("status", callback);
     }
 

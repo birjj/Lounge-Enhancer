@@ -14,11 +14,26 @@ var path = window.location.pathname,
     		}
     	},
     lastRequest,
-    autobetElement;
+    autobetElement,
+    autobetLoop;
 
 // INIT
 // don't clutter the global scope with temporary variables
 (function(){
+	// if we're not logged in
+	if (document.getElementById("login")) {
+		// check if we have login info
+		chrome.storage.local.get(["steam_data", "lounge_last_login"], function(data) {
+				var hoursSinceLogin = (Date.now()-data.lounge_last_login) / 3600000;
+				data = JSON.parse(data.steam_data);
+				// and if enough time has passed, login
+				if (hoursSinceLogin >= 0.25 && data.steam_username && data.steam_password) {
+					chrome.storage.local.set({lounge_last_login: Date.now()});
+					window.location = document.getElementById("login").href;
+				}
+			});
+	}
+
 	// if it's a match page, apply extra functionality
 	if (pageType === "match")
 		init_match_page();
@@ -39,8 +54,8 @@ var path = window.location.pathname,
 
 	errorMsg.className = "error-message";
 	container.className = "item-container";
-	header.innerHTML = "Currently auto-betting:";
-	errorHeader.innerHTML = "Last error:";
+	header.textContent = "Currently auto-betting:";
+	errorHeader.textContent = "Last error:";
 
 	autobetElement.appendChild(header);
 	autobetElement.appendChild(container);
@@ -148,6 +163,7 @@ function set_autobet(on) {
 		}
 	} else {
 		window.onbeforeunload = function(){};
+		autobetLoop = null;
 
 		// remove all items from autobet element
 		var container = document.querySelector(".autobet-indicator .item-container"),
@@ -168,33 +184,39 @@ function set_autobet(on) {
 		          1000);
 
 	// setup auto-bet logic
-	(function(endTime) {
-		return function autobet_loop(){
-			console.log("Now: "+Date.now());
-			console.log("End: "+endTime);
-			if (lastRequest && autoBetting) {
-				console.log("Autobetting: "+autoBetting);
-				console.log(lastRequest);
+	console.log("Auto bet loop:");
+	console.log(autobetLoop);
+	if (!autobetLoop) {
+		autobetLoop = (function(endTime) {
+				return function autobet_loop(){
+					console.log("Now: "+Date.now());
+					console.log("End: "+endTime);
+					if (lastRequest && autoBetting && autobetLoop === autobet_loop) {
+						console.log("Autobetting: "+autoBetting);
+						console.log(lastRequest);
 
-				var responseHandler = function(){
-			    		if (this.responseText === "Match has already started" || Date.now() > endTime) {
-		    				set_autobet(false);
-		    				alert("Match has started - autobet failed to bet items");
-			    		} else if (this.responseText) {
-			    			document.querySelector(".autobet-indicator .error-message").innerHTML = this.responseText;
-			    		} else {
-			    			window.onbeforeunload = function(){};
-			    			localStorage.playedbet = "false";
-			    			window.location.href = "http://csgolounge.com/mybets";
-			    		}
-			    	};
+						var responseHandler = function(){
+					    		if (this.responseText === "Match has already started" || Date.now() > endTime) {
+				    				set_autobet(false);
+				    				alert("Match has started - autobet failed to bet items");
+					    		} else if (this.responseText) {
+					    			document.querySelector(".autobet-indicator .error-message").textContent = this.responseText;
+					    		} else {
+					    			window.onbeforeunload = function(){};
+					    			localStorage.playedbet = "false";
+					    			window.location.href = "http://csgolounge.com/mybets";
+					    		}
+					    	};
 
-			   	post(lastRequest.url, lastRequest.data, responseHandler);
+					   	post(lastRequest.url, lastRequest.data, responseHandler);
 
-				setTimeout(autobet_loop, 10000);
-			}
-		}
-	})(Date.now() + deltaTime)();
+						setTimeout(autobet_loop, 10000);
+					}
+				}
+			})(Date.now() + deltaTime);
+	}
+	autobetLoop();
+
 }
 
 /**
@@ -220,7 +242,7 @@ function placeBetNew_overwrite(match,tlss) {
 		    		    green = elm.className === "green";
 
 		    		elm.className = green ? "red" : "green";
-		    		elm.innerHTML = green ? "Disable auto-bet" : "Enable auto-bet";
+		    		elm.textContent = green ? "Disable auto-bet" : "Enable auto-bet";
 
 		    		set_autobet(green);
 		    	},
@@ -272,7 +294,7 @@ function display_error(error, color, buttons) {
 	// create error message
 	var elm = document.createElement("p");
 
-	elm.innerHTML = error;
+	elm.textContent = error;
 	elm.className = "error" + (" "+color || "") + (buttons ? "" : " pointer");
 	elm.removeAble = true;
 

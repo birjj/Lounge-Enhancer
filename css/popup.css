@@ -1,9 +1,15 @@
+/**
+ * This place is a mess
+ * I'll clean it up at a later date
+ */
+
 * {
     font-family: "Proxima Nova Regular","Helvetica Neue",Arial,Helvetica,sans-serif;
 }
 .inline-block { display:inline-block; }
 body { background: #d7d7d7; width: 363px; }
 header {
+    position: relative;
     height:32px;
     padding:0 0 5px 40px;
 
@@ -13,6 +19,20 @@ header {
     text-shadow:1px 1px #e5e5e5;
 
     background:no-repeat left center;
+}
+header::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 20px;
+
+    border-top: 1px solid #ccc;
+    background: -webkit-radial-gradient(top, ellipse, #eee 0%, #d7d7d7 70%);
+    background:radial-gradient(top, ellipse, #eee 0%, #d7d7d7 70%);
+    z-index: -1;
 }
 .red { color: #d12121; text-shadow: 1px 1px #925555; }
 .green { color: #72a326; text-shadow: 1px 1px #4a7010; }
@@ -46,11 +66,6 @@ header {
     font-size:14px;
     color: #333;
     text-shadow: 1px 1px #e5e5e5;
-}
-.match:first-of-type .header {
-    border-top:1px solid #ccc;
-    background:-webkit-radial-gradient(top, ellipse, #eee 0%, #d7d7d7 70%);
-    background:radial-gradient(top, ellipse, #eee 0%, #d7d7d7 70%);
 }
 .match a { color: #252525; }
 .match .box {
@@ -101,3 +116,77 @@ footer a {
     text-decoration:none;
 }
 footer a:hover { color: #555; }
+
+.settings-check {
+    -webkit-appearance: none;
+    appearance: none;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    padding: 8px;
+    background-image: url(../imgs/settings.png);
+    z-index: 9;
+}
+.status ~ .settings-check {
+    right: auto;
+    left: 5px;
+}
+.settings-check:checked {
+    background: red; /* create back-arrow image */
+}
+.settings-check:checked ~ .main {
+    display: none;
+}
+.settings-check:checked ~ .settings {
+    display: block;
+}
+
+.settings {
+    display: none;
+}
+.settings form {
+    padding-left: 10px;
+}
+.settings label {
+    width: 140px;
+    display: inline-block;
+}
+.settings input {
+    -webkit-appearance: none;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    box-shadow: 0 6px 2px -6px #888;
+    padding: 2px;
+}
+.settings .note {
+    font-size: 12px;
+    color: #666;
+    text-align: right;
+    margin: 5px 0;
+}
+.settings button { /* from CSGOLounge */
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    display: block;
+    border: none;
+    width: 100%;
+    margin: 10px 0;
+    cursor: pointer;
+    outline: 0;
+
+    color: #333;
+    font-size: 13px;
+    padding: 5px;
+    text-shadow: 1px 1px #bbb;
+    box-shadow: 1px 2px 2px #666;
+    border-radius: 3px;
+    background: -webkit-linear-gradient(bottom, #c3c3c3 0%,#a2a2a2 100%);
+    background: linear-gradient(to bottom, #c3c3c3 0%,#a2a2a2 100%);
+}
+.settings button:active { /* from CSGOLounge */
+    top: 2px;
+
+    background: #aaa;
+    box-shadow: 0 0 3px #444;
+}

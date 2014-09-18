@@ -2,13 +2,17 @@
 var STATUS_NAMES = ["The trade server", "The backpack API", "The trading API", "The Steam client", "The community Server", "Bets rechecking", "Returns rechecking"];
 
 // INIT
+// hook save settings button
+document.addEventListener("DOMContentLoaded", function(){
+	document.querySelector(".settings button").addEventListener("click",save);
+	});
 // gets up to the next 4 games
 chrome.runtime.sendMessage({get: "games", num: 3}, 
 	function(matches){
 		// create the title of the section
 		if (matches) {
 			var title = document.createElement("header");
-			title.innerHTML = "Bets";
+			title.textContent = "Bets";
 			document.querySelector(".main").appendChild(title);
 		}
 		// create all match elements
@@ -29,7 +33,7 @@ chrome.runtime.sendMessage({get: "status"},
 		while ((i = colors.lastIndexOf("#FFA500")) !== -1) {
 			var status = document.createElement("p");
 
-			status.innerHTML = STATUS_NAMES[i] + " is unstable.";
+			status.textContent = STATUS_NAMES[i] + " is unstable.";
 			status.className = "status orange";
 
 			document.body.insertBefore(status, document.body.firstChild);
@@ -41,7 +45,7 @@ chrome.runtime.sendMessage({get: "status"},
 		while ((i = colors.lastIndexOf("#FF0000")) !== -1) {
 			var status = document.createElement("p");
 
-			status.innerHTML = STATUS_NAMES[i] + " is down.";
+			status.textContent = STATUS_NAMES[i] + " is down.";
 			status.className = "status red";
 
 			document.body.insertBefore(status, document.body.firstChild);
@@ -49,7 +53,27 @@ chrome.runtime.sendMessage({get: "status"},
 			colors[i] = "";
 		}
 	});
-// make all links open in new tab
+
+/**
+ * Save settings
+ */
+function save() {
+	console.log("Saving...");
+	var usr = document.getElementById("steamName").value,
+	    pss = document.getElementById("steamPass").value,
+	    obj = {steam_username: usr,
+	           steam_password: pss};
+
+	console.log(obj);
+
+	chrome.storage.local.set({"steam_data": JSON.stringify(obj)}, function(){
+			document.querySelector(".settings-check").checked = false;
+		});
+}
+
+/**
+ * Make all links open in a new tab when clicked
+ */
 function hookLinks() {
 	var links = document.getElementsByTagName("a");
 	console.log(links);
@@ -85,7 +109,7 @@ function create_match_elm(data) {
 	a.href = data.link;
 	box.className = "box";
 	vs.className = "vs inline-block";
-	vs.innerHTML = "vs";
+	vs.textContent = "vs";
 
 	// string elements together
 	box.appendChild(team1);
@@ -117,7 +141,7 @@ function create_team_elm(data, num) {
 	name.className = "name";
 	name.innerHTML = data.name;
 	percent.className = "percentage";
-	percent.innerHTML = data.percent+"%";
+	percent.textContent = data.percent+"%";
 
 	// string elements together
 	text.appendChild(name);

@@ -126,13 +126,14 @@ footer a:hover { color: #555; }
     padding: 8px;
     background-image: url(../imgs/settings.png);
     z-index: 9;
+    outline: none;
 }
 .status ~ .settings-check {
     right: auto;
     left: 5px;
 }
 .settings-check:checked {
-    background: red; /* create back-arrow image */
+    background-image: url(../imgs/arrow.png); /* create back-arrow image */
 }
 .settings-check:checked ~ .main {
     display: none;
@@ -143,6 +144,9 @@ footer a:hover { color: #555; }
 
 .settings {
     display: none;
+}
+.settings header {
+    padding-left: 0;
 }
 .settings form {
     padding-left: 10px;

@@ -51,5 +51,9 @@
 		"https://steamcommunity.com/openid/login",
 		"alarms",
 		"storage"
-	]
+	],
+	"icons": {
+		"48": "imgs/icon/48.png",
+		"128": "imgs/icon/128.png"
+	}
 }

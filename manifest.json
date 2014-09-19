@@ -1,9 +1,9 @@
 {
 	"manifest_version": 2,
-	"name": "CSGO Lounge Expander",
-	"short_name": "LoungeExt",
+	"name": "CSGO Lounge Enhancer",
+	"short_name": "LoungeEnhancer",
 	"description": "Add functionality to CSGO Lounge - also includes a nifty status indicator",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"content_scripts": [{
 		"matches": [
 			"*://csgolounge.com/*"

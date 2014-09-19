@@ -19,10 +19,9 @@ chrome.runtime.onStartup.addListener(function(){
     console.log("onStartup called");
     set_icon(3);
 })
+
 // INIT
-// why is onInstalled fired on reload, yet onStartup isn't?
-// more importantly - why isn't there an onLoad event?
-chrome.runtime.onInstalled.addListener(function(){
+function init() {
     console.log("Starting extension");
     chrome.alarms.clearAll();
     // create alarm to call icon updater every minute
@@ -33,9 +32,8 @@ chrome.runtime.onInstalled.addListener(function(){
             console.log("Checking status ("+d.getHours()+":"+d.getMinutes()+":"+d.getSeconds()+")");
             get_status(status_loop);
         });
-
-    // TODO: code function to get winnings
-});
+}
+chrome.runtime.onInstalled.addListener(init);
 
 /**
  * Listens for message

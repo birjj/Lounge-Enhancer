@@ -116,7 +116,9 @@ function init_queued() {
 							// if timer is above 0
 							if ((420000 - (Date.now() - localStorage.whenbet)/1000) > 0) {
 								// TODO: save relevant info to ensure safe trade
-								window.location = nodes[i].href;
+								chrome.storage.local.set({"steam_trading": true}, (function(link){
+										return function(){window.location = link;}
+									})(nodes[i].href));
 							}
 						}
 					}
